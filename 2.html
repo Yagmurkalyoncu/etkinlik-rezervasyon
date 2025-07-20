@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etkinlik Rezervasyon Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-confirm {
+            width: 100%;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .success-popup {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+        }
+
+        .success-content {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            margin: 15% auto;
+            padding: 50px 40px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: bounceIn 0.5s ease-out;
+            color: white;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-message {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .success-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .btn-close-success {
+            background: white;
+            color: #28a745;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Etkinlik Merkezi</h1>
+        <p style="margin-bottom: 30px; color: #666; font-size: 18px;">
+            Harika etkinliklerimize katılmak için rezervasyon yapın!
+        </p>
+        <button class="btn-primary" onclick="openReservationModal()">
+            📅 Rezervasyonu Yap
+        </button>
+    </div>
+
+    <!-- Rezervasyon Modal -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReservationModal()">&times;</span>
+            <h2 class="form-title">📋 Rezervasyon Formu</h2>
+            <form id="reservationForm">
+                <div class="form-group">
+                    <label for="firstName">Adınız <span class="required">*</span></label>
+                    <input type="text" id="firstName" name="firstName" required placeholder="Adınızı giriniz">
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Soyadınız <span class="required">*</span></label>
+                    <input type="text" id="lastName" name="lastName" required placeholder="Soyadınızı giriniz">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Bölümünüz <span class="required">*</span></label>
+                    <input type="text" id="department" name="department" required placeholder="Bölümünüzü giriniz">
+                </div>
+
+                <div class="form-group">
+                    <label for="classLevel">Sınıf Seviyeniz <span class="required">*</span></label>
+                    <select id="classLevel" name="classLevel" required>
+                        <option value="">Sınıf seviyenizi seçiniz</option>
+                        <option value="hazirlik">Hazırlık</option>
+                        <option value="1">1. Sınıf</option>
+                        <option value="2">2. Sınıf</option>
+                        <option value="3">3. Sınıf</option>
+                        <option value="4">4. Sınıf</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-confirm">
+                    ✅ Rezervasyonu Onayla
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Başarı Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="success-content">
+            <div class="success-emoji">😊</div>
+            <div class="success-message">Etkinlik için rezervasyonunuz tamamlandı!</div>
+            <div class="success-subtitle">Yakında sizinle iletişime geçeceğiz.</div>
+            <button class="btn-close-success" onclick="closeSuccessPopup()">Tamam</button>
+        </div>
+    </div>
+
+    <script>
+        // Modal açma fonksiyonu
+        function openReservationModal() {
+            document.getElementById('reservationModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Modal kapatma fonksiyonu
+        function closeReservationModal() {
+            document.getElementById('reservationModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Başarı popup'ını kapatma fonksiyonu
+        function closeSuccessPopup() {
+            document.getElementById('successPopup').style.display = 'none';
+            document.getElementById('reservationModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            // Formu sıfırla
+            document.getElementById('reservationForm').reset();
+        }
+
+        // Modal dışına tıklayınca kapatma
+        window.onclick = function(event) {
+            const modal = document.getElementById('reservationModal');
+            const successPopup = document.getElementById('successPopup');
+            
+            if (event.target == modal) {
+                closeReservationModal();
+            }
+            if (event.target == successPopup) {
+                closeSuccessPopup();
+            }
+        }
+
+        // Form gönderme işlemi
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Form verilerini al
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const department = document.getElementById('department').value;
+            const classLevel = document.getElementById('classLevel').value;
+
+            // Basit form doğrulama
+            if (firstName && lastName && department && classLevel) {
+                // Başarı popup'ını göster
+                document.getElementById('successPopup').style.display = 'block';
+            } else {
+                alert('Lütfen tüm alanları doldurunuz!');
+            }
+        });
+
+        // ESC tuşu ile modal kapatma
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeReservationModal();
+                closeSuccessPopup();
+            }
+        });
+    </script>
+</body>
+</html>
