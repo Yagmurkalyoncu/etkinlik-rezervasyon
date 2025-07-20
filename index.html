@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etkinlik Koltuk Rezervasyon Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stage {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(238, 90, 36, 0.3);
+        }
+        
+        .seating-area {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .seat {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .seat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .seat:hover::before {
+            left: 100%;
+        }
+        
+        .seat.available {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-color: #4ecdc4;
+            color: #2d3436;
+        }
+        
+        .seat.available:hover {
+            background: linear-gradient(135deg, #00b894 0%, #0984e3 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,184,148,0.4);
+        }
+        
+        .seat.selected {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            border-color: #e17055;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(225,112,85,0.4);
+        }
+        
+        .seat.reserved {
+            background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+            border-color: #636e72;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .seat.management {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            border-color: #6c5ce7;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .seat.sponsor {
+            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+            border-color: #fd79a8;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .seat.doorkeeper {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            border-color: #00b894;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .seat.blocked {
+            background: #ddd;
+            border-color: #bbb;
+            color: #888;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .legend-seat {
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+        
+        .info-panel {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .selected-seats {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #2d3436;
+        }
+        
+        .confirm-btn {
+            background: linear-gradient(135deg, #00b894 0%, #0984e3 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(9,132,227,0.3);
+        }
+        
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(9,132,227,0.4);
+        }
+        
+        .confirm-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .row-label {
+            width: 30px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #636e72;
+            font-size: 14px;
+        }
+        
+        .column-header {
+            text-align: center;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #ddd6fe 0%, #e0e7ff 100%);
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .seating-area {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .seat {
+                width: 35px;
+                height: 35px;
+                font-size: 9px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Etkinlik Koltuk Rezervasyonu</h1>
+            <p>Koltuğunuzu seçin ve rezervasyonunuzu tamamlayın</p>
+        </div>
+        
+        <div class="stage">🎬 SAHNE</div>
+        
+        <div class="seating-area">
+            <div class="column">
+                <div class="column-header">Sol Sütun</div>
+                <div id="left-column"></div>
+            </div>
+            
+            <div class="column">
+                <div class="column-header">Orta Sütun</div>
+                <div id="center-column"></div>
+            </div>
+            
+            <div class="column">
+                <div class="column-header">Sağ Sütun</div>
+                <div id="right-column"></div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-seat available" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); border-color: #4ecdc4;"></div>
+                <span>Müsait</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-seat selected" style="background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); border-color: #e17055;"></div>
+                <span>Seçili</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-seat management" style="background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); border-color: #6c5ce7;"></div>
+                <span>Yönetim Kurulu</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-seat sponsor" style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%); border-color: #fd79a8;"></div>
+                <span>Sponsorluk/Organizasyon</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-seat doorkeeper" style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); border-color: #00b894;"></div>
+                <span>Kapı Görevlisi</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-seat blocked" style="background: #ddd; border-color: #bbb;"></div>
+                <span>Rezerve Edilemez</span>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="selected-seats">
+                <strong>Seçili Koltuklar:</strong> <span id="selected-list">Henüz koltuk seçilmedi</span>
+            </div>
+            <button class="confirm-btn" id="confirm-btn" disabled onclick="confirmReservation()">
+                Rezervasyonu Onayla
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class SeatReservationSystem {
+            constructor() {
+                this.seats = new Map();
+                this.selectedSeats = new Set();
+                this.totalRows = 10;
+                this.seatsPerRow = 6;
+                this.columns = ['left', 'center', 'right'];
+                this.init();
+            }
+            
+            init() {
+                this.createSeatingLayout();
+                this.updateSelectedSeatsDisplay();
+            }
+            
+            createSeatingLayout() {
+                this.columns.forEach((column, colIndex) => {
+                    const container = document.getElementById(`${column}-column`);
+                    
+                    for (let row = 1; row <= this.totalRows; row++) {
+                        const rowDiv = document.createElement('div');
+                        rowDiv.className = 'row';
+                        
+                        // Satır etiketi ekle
+                        const rowLabel = document.createElement('div');
+                        rowLabel.className = 'row-label';
+                        rowLabel.textContent = row;
+                        rowDiv.appendChild(rowLabel);
+                        
+                        for (let seat = 1; seat <= this.seatsPerRow; seat++) {
+                            const seatId = `${column}-${row}-${seat}`;
+                            const seatElement = document.createElement('div');
+                            seatElement.className = 'seat';
+                            seatElement.id = seatId;
+                            seatElement.textContent = seat;
+                            
+                            // Koltuk durumunu belirle
+                            const seatStatus = this.getSeatStatus(column, row, seat);
+                            seatElement.classList.add(seatStatus);
+                            
+                            // Tıklama olayı ekle
+                            if (seatStatus === 'available' || seatStatus === 'blocked') {
+                                seatElement.addEventListener('click', () => this.handleSeatClick(seatId, seatElement));
+                            }
+                            
+                            this.seats.set(seatId, {
+                                column: colIndex,
+                                row: row,
+                                seat: seat,
+                                status: seatStatus,
+                                element: seatElement
+                            });
+                            
+                            rowDiv.appendChild(seatElement);
+                        }
+                        
+                        container.appendChild(rowDiv);
+                    }
+                });
+            }
+            
+            getSeatStatus(column, row, seat) {
+                // Orta sütun, ilk 2 sıra - Yönetim kurulu için rezerve
+                if (column === 'center' && (row === 1 || row === 2)) {
+                    return 'management';
+                }
+                
+                // Sağ sütun, ilk 2 sıra - Sponsorluk/Organizasyon ekibi için rezerve
+                if (column === 'right' && (row === 1 || row === 2)) {
+                    return 'sponsor';
+                }
+                
+                // Sol sütun, 1. sıra, ilk iki koltuk - Kapı görevlileri için rezerve
+                if (column === 'left' && row === 1 && (seat === 1 || seat === 2)) {
+                    return 'doorkeeper';
+                }
+                
+                // Orta sütun tamamen dolmadan sol ve sağ sütunlar rezerve edilemez
+                if ((column === 'left' || column === 'right') && !this.isCenterColumnFull()) {
+                    return 'blocked';
+                }
+                
+                // Öndeki sıralar dolmadan arka sıralar rezerve edilemez
+                if (!this.areFrontRowsFull(column, row)) {
+                    return 'blocked';
+                }
+                // Sıralı koltuk seçimi kontrolü - koltuklar sırayla seçilmeli
+                if (!this.areSeatNumbersSequential(column, row, seat)) {
+                    return 'blocked';
+                }
+                
+                return 'available';
+            }
+            
+            areSeatNumbersSequential(column, row, seatNumber) {
+                // Bu sırada daha önceki numaralı koltuklar seçilmiş mi kontrol et
+                for (let seat = 1; seat < seatNumber; seat++) {
+                    const seatId = `${column}-${row}-${seat}`;
+                    const seatData = this.seats.get(seatId);
+                    
+                    // Eğer bu koltuk özel bir rezervasyon değilse ve seçilmemişse
+                    if (seatData && 
+                        seatData.status !== 'management' && 
+                        seatData.status !== 'sponsor' && 
+                        seatData.status !== 'doorkeeper' &&
+                        !this.selectedSeats.has(seatId)) {
+                        return false; // Önceki koltuk boş, bu koltuk seçilemez
+                    }
+                }
+                return true;
+            }
+            
+            isCenterColumnFull() {
+                // Orta sütundaki müsait koltukları kontrol et
+                for (let row = 1; row <= this.totalRows; row++) {
+                    if (row === 1 || row === 2) continue; // Rezerve sıralar atla
+                    
+                    for (let seat = 1; seat <= this.seatsPerRow; seat++) {
+                        const seatId = `center-${row}-${seat}`;
+                        const seatData = this.seats.get(seatId);
+                        if (seatData && !this.selectedSeats.has(seatId) && seatData.status === 'available') {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            areFrontRowsFull(column, targetRow) {
+                // Hedef sıradan önceki tüm sıraların dolu olup olmadığını kontrol et
+                for (let row = 1; row < targetRow; row++) {
+                    // Özel sıralar atlanır
+                    if ((column === 'center' && (row === 1 || row === 2)) || 
+                        (column === 'right' && (row === 1 || row === 2)) ||
+                        (column === 'left' && row === 1)) {
+                        continue;
+                    }
+                    
+                    for (let seat = 1; seat <= this.seatsPerRow; seat++) {
+                        const seatId = `${column}-${row}-${seat}`;
+                        const seatData = this.seats.get(seatId);
+                        if (seatData && !this.selectedSeats.has(seatId) && seatData.status === 'available') {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            handleSeatClick(seatId, seatElement) {
+                const seatData = this.seats.get(seatId);
+                
+                if (this.selectedSeats.has(seatId)) {
+                    // Koltuğu seçimden kaldır
+                    this.selectedSeats.delete(seatId);
+                    seatElement.classList.remove('selected');
+                    seatElement.classList.add('available');
+                } else {
+                    // Koltuğun seçilebilir olup olmadığını kontrol et
+                    if (this.canSelectSeat(seatData)) {
+                        this.selectedSeats.add(seatId);
+                        seatElement.classList.remove('available', 'blocked');
+                        seatElement.classList.add('selected');
+                    }
+                }
+                
+                this.updateSeatAvailability();
+                this.updateSelectedSeatsDisplay();
+            }
+            
+            canSelectSeat(seatData) {
+                const { column, row, seat } = seatData;
+                const columnName = ['left', 'center', 'right'][column];
+                
+                // Orta sütun dışındaki sütunlar için orta sütun kontrol
+                if (column !== 1 && !this.isCenterColumnFull()) {
+                    return false;
+                }
+                
+                // Öndeki sıralar kontrol
+                if (!this.areFrontRowsFull(columnName, row)) {
+                    return false;
+                }
+                
+                // Sıralı koltuk seçimi kontrolü
+                if (!this.areSeatNumbersSequential(columnName, row, seat)) {
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            updateSeatAvailability() {
+                // Tüm koltukların durumunu güncelle
+                this.seats.forEach((seatData, seatId) => {
+                    const { element, status } = seatData;
+                    
+                    if (status === 'available' || status === 'blocked') {
+                        if (!this.selectedSeats.has(seatId)) {
+                            const newStatus = this.getSeatStatus(
+                                ['left', 'center', 'right'][seatData.column],
+                                seatData.row,
+                                seatData.seat
+                            );
+                            
+                            element.className = `seat ${newStatus}`;
+                            seatData.status = newStatus;
+                        }
+                    }
+                });
+            }
+            
+            updateSelectedSeatsDisplay() {
+                const selectedList = document.getElementById('selected-list');
+                const confirmBtn = document.getElementById('confirm-btn');
+                
+                if (this.selectedSeats.size > 0) {
+                    const seatNames = Array.from(this.selectedSeats).map(seatId => {
+                        const [column, row, seat] = seatId.split('-');
+                        const columnName = column === 'left' ? 'Sol' : column === 'center' ? 'Orta' : 'Sağ';
+                        return `${columnName}-${row}-${seat}`;
+                    });
+                    selectedList.textContent = seatNames.join(', ');
+                    confirmBtn.disabled = false;
+                } else {
+                    selectedList.textContent = 'Henüz koltuk seçilmedi';
+                    confirmBtn.disabled = true;
+                }
+            }
+        }
+        
+        function confirmReservation() {
+            const system = window.seatSystem;
+            const selectedSeats = Array.from(system.selectedSeats);
+            
+            if (selectedSeats.length > 0) {
+                alert(`Rezervasyonunuz onaylandı!\nSeçili koltuklar: ${selectedSeats.length} adet\n\nDetaylar:\n${Array.from(system.selectedSeats).map(seatId => {
+                    const [column, row, seat] = seatId.split('-');
+                    const columnName = column === 'left' ? 'Sol' : column === 'center' ? 'Orta' : 'Sağ';
+                    return `${columnName} Sütun - ${row}. Sıra - ${seat}. Koltuk`;
+                }).join('\n')}`);
+                
+                // Seçili koltukları rezerve edilmiş olarak işaretle
+                selectedSeats.forEach(seatId => {
+                    const seatData = system.seats.get(seatId);
+                    seatData.element.classList.remove('selected');
+                    seatData.element.classList.add('reserved');
+                    seatData.status = 'reserved';
+                });
+                
+                system.selectedSeats.clear();
+                system.updateSelectedSeatsDisplay();
+                system.updateSeatAvailability();
+            }
+        }
+        
+        // Sistemi başlat
+        window.seatSystem = new SeatReservationSystem();
+    </script>
+</body>
+</html>
