@@ -224,6 +224,38 @@
             box-shadow: none;
         }
         
+        .my-button {
+            background: linear-gradient(135deg, #8B7CF8 0%, #5B47DB 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 124, 248, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .my-button:hover {
+            background: linear-gradient(135deg, #9D8EFA 0%, #6C59DD 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 124, 248, 0.4);
+        }
+
+        .my-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(139, 124, 248, 0.3);
+        }
+
+        .button-icon {
+            font-size: 18px;
+        }
+        
         .row-label {
             width: 30px;
             height: 45px;
@@ -261,6 +293,7 @@
                 font-size: 2rem;
             }
         }
+        
     </style>
 </head>
 <body>
@@ -320,9 +353,13 @@
             <div class="selected-seats">
                 <strong>Seçili Koltuklar:</strong> <span id="selected-list">Henüz koltuk seçilmedi</span>
             </div>
-            <button class="confirm-btn" id="confirm-btn" disabled onclick="confirmReservation()">
-                Rezervasyonu Onayla
+            
+            <button class="my-button" onclick="window.location.href='2.html'">
+                <span class="button-icon">📅</span>
+                REZERVASYONU YAP
             </button>
+              
+           
         </div>
     </div>
 
@@ -550,10 +587,10 @@
                         return `${columnName}-${row}-${seat}`;
                     });
                     selectedList.textContent = seatNames.join(', ');
-                    confirmBtn.disabled = false;
+                    if (confirmBtn) confirmBtn.disabled = false;
                 } else {
                     selectedList.textContent = 'Henüz koltuk seçilmedi';
-                    confirmBtn.disabled = true;
+                    if (confirmBtn) confirmBtn.disabled = true;
                 }
             }
         }
